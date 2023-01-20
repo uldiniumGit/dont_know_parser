@@ -10,9 +10,9 @@ response = requests.get(url)
 soup = BeautifulSoup(response.text, 'html.parser')
 
 # print(soup.a)
-
+#
 # print(soup.a.string)
-
+#
 # print(soup.a.get('href'))
 
 first = soup.find_all('li', class_='parts-page__item')
@@ -30,7 +30,10 @@ for i in first:
     print('Время:', p.string)
 
     p = i.contents[0].contents[1].contents[1]
-    print('Тег:', p.string, '\n')
+    print('Тег:', p.string)
+
+    p = i.contents[0].get('href')
+    print('https://lenta.ru'+p, '\n')
 
 
 
