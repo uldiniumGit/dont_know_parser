@@ -78,7 +78,6 @@ def news(message):
 
         # Собираем новость из листов
         news_list_01 = str(news_list[i] + '\n' + href_list[i] + '\n' + time_list[i])
-
         # Отправляем новость пользователю
         bot.send_message(message.chat.id, news_list_01, disable_web_page_preview=True)
 
