@@ -3,9 +3,8 @@ import telebot
 from bs4 import BeautifulSoup
 import requests
 import os
-import sys
 
-TOKEN = ''
+TOKEN = ''  # Вставьте сюда ваш токен
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -17,13 +16,16 @@ def send_welcome(message):
     bot.reply_to(message, "хей")
 
 
-# Команды
+# Команды помощи
 @bot.message_handler(commands=['help'])
-def send_welcome(message):
+def send_help(message):
     print('help')
     bot.reply_to(message,
-                 "Список команд:\n/start Приветствие\n/help Все команды"
-                 "\n/timer Запускает таймер на 5 секунд\n/news Новости")
+                 "Список команд:\n"
+                 "/start — Приветствие\n"
+                 "/help — Все команды\n"
+                 "/timer — Запускает таймер на 5 секунд\n"
+                 "/news — Новости")
 
 
 # Таймер
@@ -41,76 +43,76 @@ def news(message):
     print('news')
 
     url = 'https://lenta.ru/parts/news/'
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        bot.send_message(message.chat.id, 'Ошибка при получении новостей: ' + str(e))
+        return
 
-    response = requests.get(url)
-
-    # Создаем суп для разбора html
     soup = BeautifulSoup(response.text, 'html.parser')
+    items = soup.find_all('li', class_='parts-page__item')
 
-    first = soup.find_all('li', class_='parts-page__item')
+    if not items:
+        bot.send_message(message.chat.id, 'Новости не найдены.')
+        return
 
-    # Последним элементом лежит показать еще, а не новость. Убираем его.
-    first.pop()
+    # Удаляем последний элемент "Показать еще"
+    items.pop()
 
-    # Листы для новости, времени и ссылки на новость
-    news_list = []
-    time_list = []
-    href_list = []
+    for item in items:
+        try:
+            # Получаем заголовок новости
+            title = item.a.get_text(strip=True)
 
-    # Заполняем листы данными
-    for i in first:
-        p = i.contents[0].contents[0]
-        news_list.append(p.string)
+            # Получаем ссылку на новость
+            href = item.a['href']
+            if not href.startswith('http'):
+                href = 'https://lenta.ru' + href
 
-        p = i.contents[0].contents[1].contents[0]
-        time_list.append(p.string)
+            # Получаем время новости
+            time_tag = item.find('time')
+            time_text = time_tag.get_text(strip=True) if time_tag else 'Время не указано'
 
-        p = i.contents[0].get('href')
+            # Формируем сообщение
+            news_message = f"{title}\n{href}\n{time_text}"
 
-        # Если ссылка на ленту ру, то приводим ее в нужный вид
-        if p[0] == 'h':
-            href_list.append(p)
-        else:
-            href_list.append('https://lenta.ru'+p)
-
-    # Выводим сообщения с новостями
-    for i in range(len(news_list)):
-
-        # Собираем новость из листов
-        news_list_01 = str(news_list[i] + '\n' + href_list[i] + '\n' + time_list[i])
-        # Отправляем новость пользователю
-        bot.send_message(message.chat.id, news_list_01, disable_web_page_preview=True)
-
+            bot.send_message(message.chat.id, news_message, disable_web_page_preview=True)
+        except Exception as e:
+            print(f"Ошибка при обработке новости: {e}")
 
 # Команда для админа
 @bot.message_handler(commands=['restart'], func=lambda message: message.from_user.username == 'Booklee')
 def admin_restart(message):
-    os.system('notepad')
+    # Здесь можно добавить команду перезапуска бота или выполнить нужное действие
+    bot.reply_to(message, "Перезапуск не реализован.")
+    # Пример вызова внешней команды:
+    # os.system('notepad')  # Это откроет блокнот, что скорее всего не нужно
 
 
-# Ответ на сообщение
-@bot.message_handler(content_types='text')
-def reverse_text(message):
+# Ответ на текстовые сообщения
+@bot.message_handler(content_types=['text'])
+def reply_text(message):
     print(message)
     text = message.text
     bot.reply_to(message, f'Сам {text}')
 
 
 # Ответ на стикер
-@bot.message_handler(content_types='sticker')
+@bot.message_handler(content_types=['sticker'])
 def send_sticker(message):
     file_id = 'CAACAgIAAxkBAAO8Y8k9R-1nCwZStuQBBjzyhVaD_ugAAvYAA6bdEgzbFiprLIJvuS0E'
     print(message)
     bot.send_sticker(message.chat.id, file_id)
 
 
-# Обработка команд с параметром
-
+# Если хотите использовать команду с параметром, раскомментируйте и отредактируйте
 # @bot.message_handler(commands=['say'])
 # def say(message):
 #     print('say')
 #     text = ' '.join(message.text.split(' ')[1:])
-#     bot.reply_to(message, f'{text.upper()}')
+#     bot.reply_to(message, text.upper())
 
 
 bot.infinity_polling()
+
