@@ -2,36 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>результаты</title>
+    <title>Результаты</title>
 </head>
 <body>
     <h1>Результаты поиска</h1>
     <hr>
     <ul>
-        <li>
-            <a href="/">Главная</a>
-        </li>
-        <li>
-            <a href="/contacts">контакты</a>
-        </li>
-        <li>
-            <a href="/results">результаты</a>
-        </li>
-        <li>
-            <a href="/run">run</a>
-        </li>
+        <li><a href="/">Главная</a></li>
+        <li><a href="/contacts">Контакты</a></li>
+        <li><a href="/results">Результаты</a></li>
+        <li><a href="/run">Run</a></li>
     </ul>
-    <p>
-        {% for item in list_counter%}
-            {% if item%2 == False %}
-                <br>
-                {{news_list_01[item]}}
-            {% else %}
-                <br>
-                {{news_list_01[item]}}
-                <hr>
-            {% endif %}
-        {% endfor %}
-    </p>
+
+    {% for item in list_counter %}
+        {% if item % 2 == 0 %}
+            <p>{{ news_list_01[item] }}</p>
+        {% else %}
+            <p>{{ news_list_01[item] }}</p>
+            <hr>
+        {% endif %}
+    {% endfor %}
 </body>
 </html>
