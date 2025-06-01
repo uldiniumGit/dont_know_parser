@@ -1,43 +1,73 @@
-"""
-Из парсера я получаю 4 типа данных: заголовок новости, время новости, теги новости и ссылку на новость.
-У меня будет только две таблицы. Одна с тегами, потому что они могут повторяться в новостях,
-а вторая с новостью, временем и ссылкой.
-Таблица с новостями будет получать данные из таблицы с тегами по внешнему ключу.
-"""
-
 import sqlite3
 
-# Подключение к базе данных
+# Подключение к базе данных (создаст файл, если его нет)
 conn = sqlite3.connect('parser.db')
-
-# Создаем курсор
 cursor = conn.cursor()
 
-cursor.execute('SELECT * from news')
+# Создание таблиц (если ещё не созданы)
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tag TEXT UNIQUE
+)
+''')
 
-result = cursor.fetchall()
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS news (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    time TEXT,
+    link TEXT,
+    tag_id INTEGER,
+    FOREIGN KEY(tag_id) REFERENCES tags(id)
+)
+''')
 
-for i in result:
-    print(i[1])
-    print(i[2])
-    print(i[3])
-    print(i[4])
+conn.commit()
+
+# --- Пример выборки всех новостей ---
+
+cursor.execute('SELECT * FROM news')
+news_rows = cursor.fetchall()
+
+for row in news_rows:
+    # row = (id, title, time, link, tag_id)
+    print(f"Заголовок: {row[1]}")
+    print(f"Время: {row[2]}")
+    print(f"Ссылка: {row[3]}")
+    print(f"ID тега: {row[4]}")
+    print('---')
 
 print('_' * 50)
 
-cursor.execute('SELECT * from news where time=?', ('12:00',))
-print(cursor.fetchall())
+# --- Пример выборки новостей по времени ---
+
+cursor.execute('SELECT * FROM news WHERE time=?', ('12:00',))
+news_at_noon = cursor.fetchall()
+print("Новости с временем 12:00:")
+for row in news_at_noon:
+    print(row)
 
 print('_' * 50)
 
-query = 'select n.new, n.time, n.link, tg.tag from news n, tags tg'
+# --- Пример выборки с JOIN для вывода новостей с их тегами ---
 
-# Вывести в нормальном виде таблицу скилы + вакансии
+query = '''
+SELECT n.title, n.time, n.link, tg.tag
+FROM news n
+JOIN tags tg ON n.tag_id = tg.id
+'''
+
 cursor.execute(query)
-result = cursor.fetchall()
+results = cursor.fetchall()
 
-for i in result:
-    print(i[0])
-    print(i[1])
-    print(i[2])
-    print(i[3], '\n')
+print("Новости с тегами:")
+for title, time_, link, tag in results:
+    print(f"Заголовок: {title}")
+    print(f"Время: {time_}")
+    print(f"Ссылка: {link}")
+    print(f"Тег: {tag}")
+    print()
+
+# Закрываем соединение
+conn.close()
