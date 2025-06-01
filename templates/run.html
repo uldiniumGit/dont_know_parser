@@ -8,30 +8,20 @@
     <h1>run</h1>
     <hr>
     <ul>
-        <li>
-            <a href="/">Главная</a>
-        </li>
-        <li>
-            <a href="/contacts">контакты</a>
-        </li>
-        <li>
-            <a href="/results">результаты</a>
-        </li>
-        <li>
-            <a href="/run">run</a>
-        </li>
+        <li><a href="/">Главная</a></li>
+        <li><a href="/contacts">Контакты</a></li>
+        <li><a href="/results">Результаты</a></li>
+        <li><a href="/run">Run</a></li>
     </ul>
-runrunrun
+    <p>runrunrun</p>
     <form method="post">
-        <input type="text" name="input_text">
+        <input type="text" name="input_text" required>
         <button type="submit">Отправить</button>
     </form>
     <ul>
-            {% for item in text_list%}
-            <li>
-                {{item}}
-            </li>
-            {% endfor %}
+        {% for item in text_list %}
+            <li>{{ item }}</li>
+        {% endfor %}
     </ul>
 </body>
 </html>
